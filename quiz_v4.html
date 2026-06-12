@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conversor de Quizzes v4.1 | Music Play! Suite</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .fade-in { animation: fadeIn 0.5s ease-in; }
+    .slide-up { animation: slideUp 0.4s ease-out; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-violet-50 to-emerald-50 min-h-screen font-sans">
+
+  <!-- Monitor de Sistema -->
+  <div id="hw-monitor" class="fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg text-xs font-mono z-50 bg-gray-800 text-white">
+    <span id="hw-status">🔍 Detectando...</span>
+  </div>
+
+  <!-- Contenedor Principal -->
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    
+    <!-- Header -->
+    <header class="fade-in text-center mb-8">
+      <h1 class="text-4xl font-bold text-violet-700 mb-2">📝 Conversor de Temarios a Quizzes</h1>
+      <p class="text-gray-600">Music Play! Suite v4.1 — Generación automática con Gemma-2B</p>
+      <a href="index.html" class="inline-block mt-2 text-sm text-violet-600 hover:text-violet-800">← Volver a la Suite</a>
+    </header>
+
+    <!-- Área de Entrada -->
+    <section class="slide-up bg-white rounded-2xl shadow-xl p-6 mb-6">
+      <h2 class="text-2xl font-bold text-gray-800 mb-4">1. Introduce tu Temario</h2>
+      <textarea id="input-syllabus" 
+                class="w-full h-40 p-4 border-2 border-gray-200 rounded-lg focus:border-violet-500 focus:outline-none resize-none"
+                placeholder="Escribe aquí el contenido de tu temario de Lenguaje Musical...&#10;&#10;Ejemplo:&#10;- El compás binario&#10;- Las figuras musicales&#10;- Los intervalos&#10;..."></textarea>
+      
+      <div class="mt-4 flex gap-4">
+        <button id="btn-load-model" 
+                class="flex-1 bg-violet-600 hover:bg-violet-700 text-white font-bold py-3 px-6 rounded-lg transition">
+          🤖 Precargar Modelo Gemma-2B
+        </button>
+        <button id="btn-generate" 
+                class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-lg transition"
+                disabled>
+          ✨ Generar Quiz
+        </button>
+      </div>
+    </section>
+
+    <!-- Área de Resultados -->
+    <section id="results-area" class="hidden slide-up bg-white rounded-2xl shadow-xl p-6">
+      <h2 class="text-2xl font-bold text-gray-800 mb-4">2. Quiz Generado</h2>
+      <div id="quiz-output" class="space-y-4"></div>
+      <button id="btn-export" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition">
+        💾 Exportar JSON
+      </button>
+    </section>
+
+    <!-- Log de Estado -->
+    <div id="log-area" class="mt-6 p-4 bg-gray-100 rounded-lg text-xs font-mono overflow-auto max-h-40 hidden"></div>
+
+  </div>
+
+  <!-- Script Principal -->
+  <script type="module">
+    import * as engine from './engine.js';
+    import * as storage from './storage.js';
+
+    let modelLoaded = false;
+    const log = (msg) => {
+      const logArea = document.getElementById('log-area');
+      logArea.classList.remove('hidden');
+      logArea.innerHTML += `[${new Date().toLocaleTimeString()}] ${msg}<br>`;
+      logArea.scrollTop = logArea.scrollHeight;
+    };
+
+    // Monitor de Hardware
+    async function updateHWMonitor() {
+      const hwStatus = document.getElementById('hw-status');
+      if (typeof navigator.gpu !== 'undefined') {
+        hwStatus.innerHTML = '✅ WebGPU Activo';
+        hwStatus.parentElement.className = 'fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg text-xs font-mono z-50 bg-emerald-600 text-white';
+      } else {
+        hwStatus.innerHTML = '⚠️ WebGPU No Disponible';
+        hwStatus.parentElement.className = 'fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg text-xs font-mono z-50 bg-amber-600 text-white';
+      }
+    }
+
+    // Precargar Modelo
+    document.getElementById('btn-load-model').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-load-model');
+      btn.disabled = true;
+      btn.textContent = '⏳ Cargando Modelo...';
+      log('Iniciando carga de Gemma-2B (1.8 GB)...');
+
+      try {
+        const result = await engine.initModel();
+        if (result.status === 'loaded') {
+          modelLoaded = true;
+          btn.textContent = '✅ Modelo Listo';
+          btn.className = 'flex-1 bg-emerald-600 text-white font-bold py-3 px-6 rounded-lg';
+          document.getElementById('btn-generate').disabled = false;
+          log(`Modelo cargado en ${result.elapsed}ms`);
+        } else {
+          throw new Error(result.message || 'Error desconocido');
+        }
+      } catch (error) {
+        btn.textContent = '❌ Error al Cargar';
+        btn.disabled = false;
+        log(`ERROR: ${error.message}`);
+        alert('No se pudo cargar el modelo. Verifica que WebGPU esté disponible.');
+      }
+    });
+
+    // Generar Quiz
+    document.getElementById('btn-generate').addEventListener('click', async () => {
+      const input = document.getElementById('input-syllabus').value.trim();
+      if (!input) {
+        alert('Por favor, introduce un temario primero.');
+        return;
+      }
+
+      const btn = document.getElementById('btn-generate');
+      btn.disabled = true;
+      btn.textContent = '🧠 Generando...';
+      log('Solicitando generación de quiz...');
+
+      try {
+        const systemPrompt = 'Eres un experto en pedagogía musical. Genera un quiz educativo en formato JSON.';
+        const userPrompt = `Genera 5 preguntas de opción múltiple sobre: ${input}`;
+        
+        const response = await engine.generateCompletion(userPrompt, systemPrompt);
+        log('Respuesta recibida del modelo');
+        
+        // Parser JSON simplificado
+        const quizData = parseQuizJSON(response);
+        displayQuiz(quizData);
+        
+        document.getElementById('results-area').classList.remove('hidden');
+        btn.textContent = '✨ Generar Otro Quiz';
+        btn.disabled = false;
+        log('Quiz generado exitosamente');
+      } catch (error) {
+        btn.textContent = '❌ Error';
+        btn.disabled = false;
+        log(`ERROR: ${error.message}`);
+        alert('Error al generar el quiz. Intenta de nuevo.');
+      }
+    });
+
+    // Parser JSON
+    function parseQuizJSON(rawText) {
+      try {
+        // Intentar extraer JSON del texto
+        const jsonMatch = rawText.match(/\[[\s\S]*?\]/);
+        if (jsonMatch) {
+          return JSON.parse(jsonMatch[0]);
+        }
+        // Fallback: crear estructura básica
+        return [
+          {
+            q: "Pregunta generada",
+            opts: ["Opción A", "Opción B", "Opción C", "Opción D"],
+            correct: 0,
+            explanation: "Explicación"
+          }
+        ];
+      } catch (e) {
+        log(`WARN: No se pudo parsear JSON, usando fallback`);
+        return [];
+      }
+    }
+
+    // Mostrar Quiz
+    function displayQuiz(questions) {
+      const output = document.getElementById('quiz-output');
+      output.innerHTML = '';
+      
+      questions.forEach((q, idx) => {
+        const card = document.createElement('div');
+        card.className = 'p-4 border-2 border-violet-200 rounded-lg';
+        card.innerHTML = `
+          <h3 class="font-bold text-lg mb-2">${idx + 1}. ${q.q || 'Pregunta sin título'}</h3>
+          <div class="space-y-2">
+            ${(q.opts || []).map((opt, i) => `
+              <div class="flex items-center gap-2">
+                <span class="${i === q.correct ? 'text-emerald-600 font-bold' : 'text-gray-600'}">
+                  ${i === q.correct ? '✓' : '○'} ${opt}
+                </span>
+              </div>
+            `).join('')}
+          </div>
+          ${q.explanation ? `<p class="mt-2 text-sm text-gray-600 italic">${q.explanation}</p>` : ''}
+        `;
+        output.appendChild(card);
+      });
+    }
+
+    // Exportar
+    document.getElementById('btn-export').addEventListener('click', () => {
+      const quizHTML = document.getElementById('quiz-output').innerHTML;
+      const blob = new Blob([quizHTML], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'quiz_export.html';
+      a.click();
+      log('Quiz exportado como HTML');
+    });
+
+    // Inicialización
+    updateHWMonitor();
+    log('Aplicación iniciada. Sistema listo.');
+  </script>
+
+</body>
+</html>
