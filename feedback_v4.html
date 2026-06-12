@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Asistente de Feedback v4.1 | Music Play! Suite</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .fade-in { animation: fadeIn 0.5s ease-in; }
+    .slide-up { animation: slideUp 0.4s ease-out; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-emerald-50 to-blue-50 min-h-screen font-sans">
+
+  <!-- Monitor de Sistema -->
+  <div id="hw-monitor" class="fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg text-xs font-mono z-50 bg-gray-800 text-white">
+    <span id="hw-status">🔍 Detectando...</span>
+  </div>
+
+  <!-- Contenedor Principal -->
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    
+    <!-- Header -->
+    <header class="fade-in text-center mb-8">
+      <h1 class="text-4xl font-bold text-emerald-700 mb-2">💬 Asistente de Feedback Pedagógico</h1>
+      <p class="text-gray-600">Music Play! Suite v4.1 — Generación empática con Gemma-2B</p>
+      <a href="index.html" class="inline-block mt-2 text-sm text-emerald-600 hover:text-emerald-800">← Volver a la Suite</a>
+    </header>
+
+    <!-- Área de Configuración -->
+    <section class="slide-up bg-white rounded-2xl shadow-xl p-6 mb-6">
+      <h2 class="text-2xl font-bold text-gray-800 mb-4">1. Datos del Alumno</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <input id="student-name" 
+               type="text" 
+               class="p-3 border-2 border-gray-200 rounded-lg focus:border-emerald-500 focus:outline-none"
+               placeholder="Nombre del alumno">
+        <select id="student-level" 
+                class="p-3 border-2 border-gray-200 rounded-lg focus:border-emerald-500 focus:outline-none">
+          <option value="">Selecciona nivel</option>
+          <option value="Primaria">Primaria</option>
+          <option value="Grado Medio">Grado Medio</option>
+          <option value="Grado Superior">Grado Superior</option>
+        </select>
+      </div>
+
+      <h3 class="font-bold text-lg mb-3">Criterios de Evaluación</h3>
+      <div class="space-y-2 mb-4">
+        <label class="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+          <input type="checkbox" class="criteria-checkbox w-5 h-5 text-emerald-600" data-aspect="Ritmo" data-criteria="Mantiene el pulso correctamente">
+          <span class="text-gray-700">Ritmo: Mantiene el pulso</span>
+        </label>
+        <label class="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+          <input type="checkbox" class="criteria-checkbox w-5 h-5 text-emerald-600" data-aspect="Entonación" data-criteria="Afina correctamente">
+          <span class="text-gray-700">Entonación: Afina bien</span>
+        </label>
+        <label class="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+          <input type="checkbox" class="criteria-checkbox w-5 h-5 text-emerald-600" data-aspect="Expresión" data-criteria="Muestra sensibilidad musical">
+          <span class="text-gray-700">Expresión: Sensibilidad musical</span>
+        </label>
+        <label class="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+          <input type="checkbox" class="criteria-checkbox w-5 h-5 text-emerald-600" data-aspect="Técnica" data-criteria="Posición corporal adecuada">
+          <span class="text-gray-700">Técnica: Posición adecuada</span>
+        </label>
+        <label class="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+          <input type="checkbox" class="criteria-checkbox w-5 h-5 text-emerald-600" data-aspect="Actitud" data-criteria="Muestra interés y esfuerzo">
+          <span class="text-gray-700">Actitud: Interés y esfuerzo</span>
+        </label>
+      </div>
+
+      <div class="mt-4 flex gap-4">
+        <button id="btn-load-model" 
+                class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-lg transition">
+          🤖 Precargar Modelo Gemma-2B
+        </button>
+        <button id="btn-generate-feedback" 
+                class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition"
+                disabled>
+          ✨ Generar Feedback
+        </button>
+      </div>
+    </section>
+
+    <!-- Área de Resultados -->
+    <section id="results-area" class="hidden slide-up bg-white rounded-2xl shadow-xl p-6">
+      <h2 class="text-2xl font-bold text-gray-800 mb-4">2. Feedback Generado</h2>
+      <div id="feedback-output" class="p-4 bg-gray-50 rounded-lg text-gray-800 leading-relaxed"></div>
+      <div class="mt-4 flex gap-4">
+        <button id="btn-copy" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg transition">
+          📋 Copiar al Portapapeles
+        </button>
+        <button id="btn-save" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition">
+          💾 Guardar Preset
+        </button>
+      </div>
+    </section>
+
+    <!-- Log de Estado -->
+    <div id="log-area" class="mt-6 p-4 bg-gray-100 rounded-lg text-xs font-mono overflow-auto max-h-40 hidden"></div>
+
+  </div>
+
+  <!-- Script Principal -->
+  <script type="module">
+    import * as engine from './engine.js';
+    import * as storage from './storage.js';
+
+    let modelLoaded = false;
+    const log = (msg) => {
+      const logArea = document.getElementById('log-area');
+      logArea.classList.remove('hidden');
+      logArea.innerHTML += `[${new Date().toLocaleTimeString()}] ${msg}<br>`;
+      logArea.scrollTop = logArea.scrollHeight;
+    };
+
+    // Monitor de Hardware
+    async function updateHWMonitor() {
+      const hwStatus = document.getElementById('hw-status');
+      if (typeof navigator.gpu !== 'undefined') {
+        hwStatus.innerHTML = '✅ WebGPU Activo';
+        hwStatus.parentElement.className = 'fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg text-xs font-mono z-50 bg-emerald-600 text-white';
+      } else {
+        hwStatus.innerHTML = '⚠️ WebGPU No Disponible';
+        hwStatus.parentElement.className = 'fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg text-xs font-mono z-50 bg-amber-600 text-white';
+      }
+    }
+
+    // Precargar Modelo
+    document.getElementById('btn-load-model').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-load-model');
+      btn.disabled = true;
+      btn.textContent = '⏳ Cargando Modelo...';
+      log('Iniciando carga de Gemma-2B...');
+
+      try {
+        const result = await engine.initModel();
+        if (result.status === 'loaded') {
+          modelLoaded = true;
+          btn.textContent = '✅ Modelo Listo';
+          btn.className = 'flex-1 bg-emerald-600 text-white font-bold py-3 px-6 rounded-lg';
+          document.getElementById('btn-generate-feedback').disabled = false;
+          log(`Modelo cargado en ${result.elapsed}ms`);
+        } else {
+          throw new Error(result.message || 'Error desconocido');
+        }
+      } catch (error) {
+        btn.textContent = '❌ Error al Cargar';
+        btn.disabled = false;
+        log(`ERROR: ${error.message}`);
+        alert('No se pudo cargar el modelo. Verifica que WebGPU esté disponible.');
+      }
+    });
+
+    // Generar Feedback
+    document.getElementById('btn-generate-feedback').addEventListener('click', async () => {
+      const studentName = document.getElementById('student-name').value.trim();
+      const studentLevel = document.getElementById('student-level').value;
+      
+      if (!studentName || !studentLevel) {
+        alert('Por favor, completa los datos del alumno.');
+        return;
+      }
+
+      // Recopilar criterios seleccionados
+      const selectedCriteria = [];
+      document.querySelectorAll('.criteria-checkbox:checked').forEach(cb => {
+        selectedCriteria.push({
+          aspect: cb.dataset.aspect,
+          criteria: cb.dataset.criteria
+        });
+      });
+
+      if (selectedCriteria.length === 0) {
+        alert('Por favor, selecciona al menos un criterio.');
+        return;
+      }
+
+      const btn = document.getElementById('btn-generate-feedback');
+      btn.disabled = true;
+      btn.textContent = '🧠 Generando...';
+      log('Solicitando generación de feedback...');
+
+      try {
+        const systemPrompt = 'Eres un profesor de música empático y experimentado. Genera feedback pedagógico positivo y constructivo para alumnos de música.';
+        const criteriaText = selectedCriteria.map(c => `${c.aspect}: ${c.criteria}`).join(', ');
+        const userPrompt = `Escribe un comentario evaluativo para ${studentName} (${studentLevel}) que cumple con: ${criteriaText}. El feedback debe ser motivador, específico y en tono cercano.`;
+        
+        const response = await engine.generateCompletion(userPrompt, systemPrompt);
+        log('Respuesta recibida del modelo');
+        
+        displayFeedback(response);
+        
+        document.getElementById('results-area').classList.remove('hidden');
+        btn.textContent = '✨ Generar Otro Feedback';
+        btn.disabled = false;
+        log('Feedback generado exitosamente');
+      } catch (error) {
+        btn.textContent = '❌ Error';
+        btn.disabled = false;
+        log(`ERROR: ${error.message}`);
+        alert('Error al generar el feedback. Intenta de nuevo.');
+      }
+    });
+
+    // Mostrar Feedback
+    function displayFeedback(text) {
+      const output = document.getElementById('feedback-output');
+      output.textContent = text;
+    }
+
+    // Copiar al Portapapeles
+    document.getElementById('btn-copy').addEventListener('click', () => {
+      const text = document.getElementById('feedback-output').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        alert('Feedback copiado al portapapeles');
+        log('Feedback copiado');
+      });
+    });
+
+    // Guardar Preset
+    document.getElementById('btn-save').addEventListener('click', () => {
+      const feedback = document.getElementById('feedback-output').textContent;
+      const studentName = document.getElementById('student-name').value;
+      const preset = {
+        student: studentName,
+        feedback: feedback,
+        timestamp: new Date().toISOString()
+      };
+      storage.savePreset('feedback_' + Date.now(), preset);
+      alert('Preset guardado exitosamente');
+      log('Preset guardado en localStorage');
+    });
+
+    // Inicialización
+    updateHWMonitor();
+    log('Aplicación iniciada. Sistema listo.');
+  </script>
+
+</body>
+</html>
