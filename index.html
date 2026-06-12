@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Music Play! Suite v4.1 — IA Local para Educación Musical</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .fade-in { animation: fadeIn 0.8s ease-in; }
+    .slide-up { animation: slideUp 0.6s ease-out; }
+    .card:hover { transform: translateY(-5px); transition: all 0.3s ease; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-violet-50 via-blue-50 to-emerald-50 min-h-screen font-sans">
+
+  <!-- Header -->
+  <header class="fade-in bg-gradient-to-r from-violet-600 to-emerald-600 text-white py-8 px-4 shadow-xl">
+    <div class="max-w-6xl mx-auto">
+      <h1 class="text-4xl md:text-5xl font-bold mb-2">🎵 Music Play! Suite v4.1</h1>
+      <p class="text-lg md:text-xl opacity-90">Herramientas de IA Local (WebLLM + Gemma-2B) para la E.M.M. de Tordesillas</p>
+      <p class="text-sm mt-2 opacity-75">Quiz interactivo y Asistente de Feedback con inferencia offline sin API Keys</p>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-6xl mx-auto px-4 py-12">
+    
+    <!-- Welcome Section -->
+    <section class="slide-up bg-white rounded-2xl shadow-2xl p-8 mb-8">
+      <h2 class="text-3xl font-bold text-gray-800 mb-4">Bienvenido a Music Play! Suite</h2>
+      <p class="text-gray-600 leading-relaxed mb-4">
+        Esta suite educativa ofrece herramientas pedagógicas potenciadas con inteligencia artificial local,
+        garantizando privacidad total (RGPD/LOPDGDD) y funcionamiento offline-first.
+      </p>
+      <div class="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded">
+        <p class="text-emerald-800 font-semibold">✓ 100% Offline • ✓ Sin API Keys • ✓ Privacidad Total • ✓ WebGPU Nativo</p>
+      </div>
+    </section>
+
+    <!-- Tools Grid -->
+    <section class="grid md:grid-cols-2 gap-8 mb-8">
+      
+      <!-- Quiz Tool Card -->
+      <div class="card slide-up bg-white rounded-2xl shadow-xl p-8 border-2 border-violet-100 hover:border-violet-300">
+        <div class="flex items-center mb-4">
+          <span class="text-5xl mr-4">📝</span>
+          <h3 class="text-2xl font-bold text-violet-700">Conversor de Quizzes</h3>
+        </div>
+        <p class="text-gray-600 mb-6">
+          Transforma tus temarios de Lenguaje Musical en quizzes interactivos generados automáticamente por Gemma-2B.
+        </p>
+        <ul class="text-sm text-gray-600 mb-6 space-y-2">
+          <li>✓ Parser robusto con validación pedagógica</li>
+          <li>✓ Generación de preguntas de opción múltiple</li>
+          <li>✓ Explicaciones contextualizadas</li>
+          <li>✓ Exportación y persistencia local</li>
+        </ul>
+        <a href="quiz_v4.html" class="block w-full text-center bg-violet-600 hover:bg-violet-700 text-white font-bold py-3 px-6 rounded-lg transition">
+          Abrir Conversor de Quizzes →
+        </a>
+      </div>
+
+      <!-- Feedback Tool Card -->
+      <div class="card slide-up bg-white rounded-2xl shadow-xl p-8 border-2 border-emerald-100 hover:border-emerald-300">
+        <div class="flex items-center mb-4">
+          <span class="text-5xl mr-4">💬</span>
+          <h3 class="text-2xl font-bold text-emerald-700">Asistente de Feedback</h3>
+        </div>
+        <p class="text-gray-600 mb-6">
+          Genera comentarios pedagógicos personalizados y empáticos para la evaluación formativa de tus alumnos.
+        </p>
+        <ul class="text-sm text-gray-600 mb-6 space-y-2">
+          <li>✓ Redacción empática basada en criterios</li>
+          <li>✓ Checkboxes categorizados (Ritmo, Expresión, etc.)</li>
+          <li>✓ Gestión de memoria optimizada para iOS</li>
+          <li>✓ Presets y plantillas personalizables</li>
+        </ul>
+        <a href="feedback_v4.html" class="block w-full text-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-lg transition">
+          Abrir Asistente de Feedback →
+        </a>
+      </div>
+    </section>
+
+    <!-- Technical Info -->
+    <section class="slide-up bg-gray-800 text-white rounded-2xl shadow-2xl p-8">
+      <h3 class="text-2xl font-bold mb-4">🔧 Arquitectura Técnica</h3>
+      <div class="grid md:grid-cols-3 gap-6 text-sm">
+        <div>
+          <h4 class="font-bold text-violet-300 mb-2">Motor IA</h4>
+          <ul class="space-y-1 opacity-90">
+            <li>• WebLLM 0.2.x</li>
+            <li>• Gemma-2B-it (Q4F16)</li>
+            <li>• WebGPU nativo</li>
+            <li>• Gestión memoria iOS</li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-bold text-emerald-300 mb-2">Persistencia</h4>
+          <ul class="space-y-1 opacity-90">
+            <li>• localStorage API</li>
+            <li>• IndexedDB (futuro)</li>
+            <li>• Diagnósticos integrados</li>
+            <li>• Sistema de presets</li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-bold text-blue-300 mb-2">PWA Offline</h4>
+          <ul class="space-y-1 opacity-90">
+            <li>• Service Worker v4.1</li>
+            <li>• Caché estratégica</li>
+            <li>• Fallback resiliente</li>
+            <li>• Hot start ~2s</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer Info -->
+    <footer class="slide-up text-center mt-12 text-gray-600">
+      <p class="mb-2">Desarrollado para la <strong>E.M.M. de Tordesillas</strong></p>
+      <p class="text-sm opacity-75">v4.1 • LOMLOE • WCAG 2.1 AA • RGPD • LOPDGDD</p>
+      <p class="text-xs mt-4 opacity-50">Despliegue: GitHub Pages • Licencia: Educativo</p>
+    </footer>
+
+  </main>
+
+  <!-- Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/music-play-suite-local-ai/sw.js')
+          .then(reg => console.info('[SW] Registrado:', reg.scope))
+          .catch(err => console.warn('[SW] Error:', err));
+      });
+    }
+  </script>
+
+</body>
+</html>
